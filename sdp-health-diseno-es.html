@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDP-HEALTH — Propuesta de Diseño</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050b14;
+    --surface: #0c1621;
+    --surface2: #111d2b;
+    --border: #1a2e42;
+    --border-glow: #1e4060;
+    --text: #e8f4f8;
+    --text-muted: #5a8aa8;
+    --text-dim: #2d5068;
+    --accent: #00d4ff;
+    --accent-dim: rgba(0,212,255,0.12);
+    --accent2: #0af5b0;
+    --critical: #ff3b3b;
+    --critical-dim: rgba(255,59,59,0.15);
+    --high: #ff8800;
+    --high-dim: rgba(255,136,0,0.15);
+    --medium: #f5c400;
+    --medium-dim: rgba(245,196,0,0.12);
+    --low: #00c853;
+    --low-dim: rgba(0,200,83,0.12);
+    --non-urgent: #4fc3f7;
+    --non-dim: rgba(79,195,247,0.12);
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --r: 8px;
+    --r-lg: 14px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── HERO ─────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 30%, rgba(0,212,255,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 20% 80%, rgba(10,245,176,0.05) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(26,46,66,0.3) 39px, rgba(26,46,66,0.3) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(26,46,66,0.3) 39px, rgba(26,46,66,0.3) 40px);
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 6vw, 80px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    position: relative; z-index: 1;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-sub {
+    max-width: 640px;
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-top: 20px;
+    line-height: 1.7;
+    position: relative; z-index: 1;
+    animation: fadeUp 0.6s ease 0.2s both;
+  }
+
+  .hero-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 48px;
+    position: relative; z-index: 1;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  .hero-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    background: var(--surface);
+  }
+
+  .hero-nav a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+    transform: translateY(-2px);
+  }
+
+  /* ─── SECCIÓN ────────────────────────────────── */
+  .section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 40px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .section-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding-top: 6px;
+    white-space: nowrap;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(24px, 3vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .section-desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 8px;
+    max-width: 600px;
+    line-height: 1.7;
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0 40px;
+  }
+
+  /* ─── TARJETAS ──────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .card-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ─── LAYOUT OVERVIEW ───────────────────────── */
+  .layout-overview {
+    display: grid;
+    grid-template-columns: 220px 1fr 280px;
+    grid-template-rows: 48px 1fr 56px;
+    gap: 2px;
+    background: var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    height: 560px;
+  }
+
+  .lo-topbar {
+    grid-column: 1 / -1;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+  }
+
+  .lo-logo {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.05em;
+  }
+
+  .lo-topnav { display: flex; gap: 4px; margin-left: auto; }
+
+  .lo-topnav span {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .lo-topnav span.active { background: var(--accent-dim); color: var(--accent); }
+
+  .lo-sidebar {
+    background: var(--surface);
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lo-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--r);
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .lo-nav-item:hover { background: var(--surface2); color: var(--text); }
+  .lo-nav-item.active { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+
+  .lo-nav-icon {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    background: currentColor;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  .lo-main { background: var(--bg); padding: 16px; overflow: hidden; display: flex; flex-direction: column; gap: 12px; }
+  .lo-right { background: var(--surface); padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+
+  .lo-bottom {
+    grid-column: 1 / -1;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .lo-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); animation: pulse 2s ease infinite; }
+
+  .kpi-row { display: flex; gap: 8px; }
+  .kpi-mini { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 10px; }
+  .kpi-mini-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-mono); }
+  .kpi-mini-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-top: 2px; }
+  .kpi-mini-value.critical { color: var(--critical); }
+  .kpi-mini-value.ok { color: var(--accent2); }
+  .kpi-mini-value.warn { color: var(--high); }
+
+  /* ─── FORMULARIO REGISTRO ─────────────────── */
+  .reg-form { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 768px) { .reg-form { grid-template-columns: 1fr; } }
+
+  .form-section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 14px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .field-label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+
+  .field-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,0.08); }
+  .field-input::placeholder { color: var(--text-dim); }
+
+  .vital-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+  .vital-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 10px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .vital-card:focus-within { border-color: var(--accent); }
+
+  .vital-unit { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .vital-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    outline: none;
+    padding: 4px 0;
+  }
+
+  .vital-input::placeholder { color: var(--text-dim); font-size: 20px; }
+  .vital-name { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .vital-alert { border-color: var(--critical) !important; background: var(--critical-dim) !important; }
+  .vital-warn { border-color: var(--high) !important; background: var(--high-dim) !important; }
+
+  .symptom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  .symptom-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg);
+  }
+
+  .symptom-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .symptom-chip.selected { border-color: var(--critical); background: var(--critical-dim); color: var(--critical); }
+  .symptom-chip.selected-med { border-color: var(--high); background: var(--high-dim); color: var(--high); }
+
+  .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--critical); flex-shrink: 0; }
+  .chip-dot.medium { background: var(--high); }
+  .chip-dot.low { background: var(--medium); }
+  .chip-dot.none { background: var(--text-dim); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: var(--r);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #050b14; }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,212,255,0.3); }
+  .btn-secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: var(--critical-dim); border: 1px solid rgba(255,59,59,0.3); color: var(--critical); }
+
+  /* ─── NIVELES DE TRIAGE ─────────────────────── */
+  .triage-levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+  @media (max-width: 900px) { .triage-levels { grid-template-columns: repeat(3, 1fr); } }
+
+  .triage-card {
+    border-radius: var(--r-lg);
+    padding: 20px 16px;
+    text-align: center;
+    border: 1px solid;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .triage-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+
+  .tc-1 { background: var(--critical-dim); border-color: rgba(255,59,59,0.3); }
+  .tc-1::before { background: var(--critical); }
+  .tc-2 { background: var(--high-dim); border-color: rgba(255,136,0,0.3); }
+  .tc-2::before { background: var(--high); }
+  .tc-3 { background: var(--medium-dim); border-color: rgba(245,196,0,0.3); }
+  .tc-3::before { background: var(--medium); }
+  .tc-4 { background: var(--low-dim); border-color: rgba(0,200,83,0.3); }
+  .tc-4::before { background: var(--low); }
+  .tc-5 { background: var(--non-dim); border-color: rgba(79,195,247,0.3); }
+  .tc-5::before { background: var(--non-urgent); }
+
+  .triage-level-num { font-family: var(--font-display); font-size: 36px; font-weight: 800; line-height: 1; }
+  .tc-1 .triage-level-num { color: var(--critical); }
+  .tc-2 .triage-level-num { color: var(--high); }
+  .tc-3 .triage-level-num { color: var(--medium); }
+  .tc-4 .triage-level-num { color: var(--low); }
+  .tc-5 .triage-level-num { color: var(--non-urgent); }
+
+  .triage-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 6px; }
+  .triage-desc { font-size: 10px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+  .triage-count { font-family: var(--font-mono); font-size: 18px; font-weight: 500; margin-top: 10px; }
+
+  .score-display { display: flex; gap: 20px; align-items: stretch; }
+
+  .score-gauge {
+    flex-shrink: 0;
+    width: 160px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .gauge-ring { position: relative; width: 100px; height: 100px; }
+  .gauge-ring svg { transform: rotate(-90deg); }
+  .gauge-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+  .gauge-fill { fill: none; stroke-width: 8; stroke-linecap: round; }
+  .gauge-critical { stroke: var(--critical); filter: drop-shadow(0 0 6px var(--critical)); }
+
+  .gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .gauge-score { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--critical); }
+  .gauge-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .score-factors { flex: 1; }
+
+  .factor-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .factor-row:last-child { border-bottom: none; }
+  .factor-name { font-size: 12px; color: var(--text-muted); width: 160px; flex-shrink: 0; }
+  .factor-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .factor-bar { height: 100%; border-radius: 3px; }
+  .fb-critical { background: var(--critical); }
+  .fb-high { background: var(--high); }
+  .fb-medium { background: var(--medium); }
+  .fb-low { background: var(--low); }
+  .factor-score { font-family: var(--font-mono); font-size: 11px; color: var(--text); width: 30px; text-align: right; flex-shrink: 0; }
+
+  /* ─── COLA DE PACIENTES ─────────────────────── */
+  .queue-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+
+  .filter-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .filter-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .filter-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  .queue-table { width: 100%; border-collapse: collapse; }
+  .qt-head { background: var(--surface2); }
+
+  .qt-head th {
+    padding: 10px 14px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .qt-row { border-bottom: 1px solid var(--border); transition: background 0.15s; cursor: pointer; }
+  .qt-row:hover { background: var(--surface2); }
+  .qt-row.critical-row { background: rgba(255,59,59,0.03); }
+
+  .qt-row td { padding: 12px 14px; font-size: 12px; vertical-align: middle; }
+
+  .triage-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .tb-critical { background: var(--critical-dim); color: var(--critical); border: 1px solid rgba(255,59,59,0.25); }
+  .tb-high { background: var(--high-dim); color: var(--high); border: 1px solid rgba(255,136,0,0.25); }
+  .tb-medium { background: var(--medium-dim); color: var(--medium); border: 1px solid rgba(245,196,0,0.25); }
+  .tb-low { background: var(--low-dim); color: var(--low); border: 1px solid rgba(0,200,83,0.25); }
+  .tb-non { background: var(--non-dim); color: var(--non-urgent); border: 1px solid rgba(79,195,247,0.25); }
+
+  .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
+  .status-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--text-dim); }
+  .status-badge.waiting::before { background: var(--medium); }
+  .status-badge.treatment::before { background: var(--accent); animation: pulse 1.5s ease infinite; }
+  .status-badge.critical-status::before { background: var(--critical); animation: pulse 0.8s ease infinite; }
+
+  .alert-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--critical-dim);
+    border: 1px solid rgba(255,59,59,0.3);
+    color: var(--critical);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    animation: alertPulse 1.5s ease infinite;
+  }
+
+  @keyframes alertPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  @keyframes staggerIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  .triage-card { animation: staggerIn 0.4s ease both; }
+  .tc-1{animation-delay:0ms} .tc-2{animation-delay:60ms} .tc-3{animation-delay:120ms}
+  .tc-4{animation-delay:180ms} .tc-5{animation-delay:240ms}
+
+  /* ─── TIEMPOS PREDICTIVOS ─────────────────── */
+  .time-display { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+
+  .time-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .time-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--accent); }
+  .time-card.warn-time::after { background: var(--high); }
+  .time-card.ok-time::after { background: var(--low); }
+
+  .time-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono); }
+  .time-value { font-family: var(--font-display); font-size: 40px; font-weight: 800; line-height: 1.1; margin-top: 6px; }
+  .time-unit { font-size: 14px; color: var(--text-muted); font-weight: 400; }
+
+  .time-confidence { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 11px; color: var(--text-muted); }
+  .conf-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .conf-fill { height: 100%; background: var(--accent2); border-radius: 2px; }
+
+  .time-trend { display: flex; align-items: center; gap: 4px; font-size: 11px; margin-top: 8px; font-family: var(--font-mono); }
+  .trend-up { color: var(--critical); }
+  .trend-down { color: var(--low); }
+  .trend-stable { color: var(--text-muted); }
+
+  /* ─── FARMACIA ───────────────────────────── */
+  .rx-container { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+  @media (max-width: 900px) { .rx-container { grid-template-columns: 1fr; } }
+  .rx-form { display: flex; flex-direction: column; gap: 16px; }
+
+  .drug-row {
+    display: grid;
+    grid-template-columns: 1fr 120px 100px 80px auto;
+    gap: 10px;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+  }
+
+  .drug-name { font-size: 13px; font-weight: 500; }
+  .drug-dose { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+  .drug-freq { font-size: 11px; color: var(--text-muted); }
+
+  .interaction-warning {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--high-dim);
+    border: 1px solid rgba(255,136,0,0.3);
+    border-radius: var(--r);
+    font-size: 12px;
+    color: var(--high);
+  }
+
+  .rx-sidebar-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+
+  .rx-notification {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.15s;
+  }
+
+  .rx-notification:hover { background: var(--surface); }
+  .rx-notification:last-child { border-bottom: none; }
+
+  .notif-icon { width: 32px; height: 32px; border-radius: var(--r); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .ni-pending { background: var(--medium-dim); border: 1px solid rgba(245,196,0,0.3); }
+  .ni-ready { background: var(--low-dim); border: 1px solid rgba(0,200,83,0.3); }
+  .ni-urgent { background: var(--critical-dim); border: 1px solid rgba(255,59,59,0.3); }
+
+  .notif-text { flex: 1; min-width: 0; }
+  .notif-title { font-size: 12px; font-weight: 500; color: var(--text); }
+  .notif-sub { font-size: 10px; color: var(--text-muted); margin-top: 1px; font-family: var(--font-mono); }
+  .notif-time { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+
+  /* ─── DASHBOARD ───────────────────────────── */
+  .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 1100px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .kpi-card:hover { transform: translateY(-2px); border-color: var(--border-glow); }
+
+  .kpi-icon { width: 36px; height: 36px; border-radius: var(--r); background: var(--accent-dim); border: 1px solid rgba(0,212,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 14px; }
+  .kpi-value { font-family: var(--font-display); font-size: 32px; font-weight: 800; line-height: 1; }
+  .kpi-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  .kpi-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    margin-top: 8px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .kpi-delta.positive { background: var(--low-dim); color: var(--low); }
+  .kpi-delta.negative { background: var(--critical-dim); color: var(--critical); }
+  .kpi-delta.neutral { background: var(--surface2); color: var(--text-muted); }
+
+  .chart-area { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; margin-top: 16px; }
+
+  .chart-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+
+  .chart-mock { display: flex; align-items: flex-end; gap: 4px; height: 120px; padding: 0 4px; }
+
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .chart-bar { width: 100%; border-radius: 4px 4px 0 0; transition: opacity 0.2s; min-height: 4px; }
+  .chart-bar:hover { opacity: 0.8; }
+  .chart-bar-label { font-size: 9px; color: var(--text-dim); font-family: var(--font-mono); }
+
+  .chart-legend { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ─── SEGURIDAD ────────────────────────────── */
+  .security-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+
+  .security-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+
+  .security-card:hover { border-color: var(--accent); }
+  .sec-icon { width: 40px; height: 40px; border-radius: var(--r); background: var(--accent-dim); border: 1px solid rgba(0,212,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .sec-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .sec-desc { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+
+  .compliance-badges { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .comp-badge { font-family: var(--font-mono); font-size: 9px; padding: 3px 8px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ─── PERSONAS ─────────────────────────────── */
+  .persona-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
+  .persona-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    transition: all 0.2s;
+  }
+
+  .persona-card:hover { transform: translateY(-3px); border-color: var(--border-glow); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+
+  .persona-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 16px; }
+  .pa-physician { background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(10,245,176,0.2)); border: 2px solid rgba(0,212,255,0.3); }
+  .pa-nurse { background: linear-gradient(135deg, rgba(245,196,0,0.2), rgba(255,136,0,0.2)); border: 2px solid rgba(245,196,0,0.3); }
+  .pa-admin { background: linear-gradient(135deg, rgba(10,245,176,0.2), rgba(79,195,247,0.2)); border: 2px solid rgba(10,245,176,0.3); }
+  .pa-pharmacist { background: linear-gradient(135deg, rgba(255,59,59,0.2), rgba(255,136,0,0.2)); border: 2px solid rgba(255,59,59,0.3); }
+
+  .persona-role { font-family: var(--font-mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .persona-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .persona-needs { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .persona-needs li { display: flex; gap: 8px; font-size: 12px; color: var(--text-muted); align-items: flex-start; line-height: 1.5; }
+  .persona-needs li::before { content: '›'; color: var(--accent); flex-shrink: 0; font-size: 14px; line-height: 1.3; }
+
+  /* ─── JOURNEY MAP ──────────────────────────── */
+  .journey-flow { display: flex; gap: 0; overflow-x: auto; padding-bottom: 8px; }
+
+  .journey-step { flex-shrink: 0; width: 180px; position: relative; }
+  .journey-step::after { content: '→'; position: absolute; right: -14px; top: 24px; color: var(--text-dim); font-size: 16px; z-index: 1; }
+  .journey-step:last-child::after { display: none; }
+
+  .journey-node { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px; margin: 0 24px 0 0; transition: all 0.2s; }
+  .journey-node:hover { border-color: var(--accent); }
+
+  .journey-step-num { font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--text-dim); line-height: 1; }
+  .journey-step-title { font-size: 12px; font-weight: 600; margin-top: 6px; color: var(--text); }
+  .journey-step-desc { font-size: 10px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+  .journey-persona { font-family: var(--font-mono); font-size: 9px; padding: 2px 6px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); display: inline-block; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ─── ACCESIBILIDAD ─────────────────────────── */
+  .a11y-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .a11y-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; display: flex; gap: 12px; align-items: flex-start; }
+  .a11y-icon { font-size: 20px; flex-shrink: 0; }
+  .a11y-title { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+  .a11y-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ─── INTEGRACIÓN EHR ─────────────────────── */
+  .integration-row { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 20px 0; }
+
+  .int-node { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px 20px; text-align: center; flex-shrink: 0; min-width: 140px; transition: all 0.2s; }
+  .int-node:hover { border-color: var(--accent); }
+  .int-node.center { background: var(--accent-dim); border-color: rgba(0,212,255,0.4); }
+  .int-icon { font-size: 24px; margin-bottom: 6px; }
+  .int-label { font-size: 11px; font-weight: 600; }
+  .int-sub { font-size: 9px; color: var(--text-dim); margin-top: 2px; font-family: var(--font-mono); }
+
+  .int-arrow { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 0 8px; }
+  .int-arrow-line { width: 40px; height: 1px; background: linear-gradient(90deg, var(--border), var(--accent), var(--border)); position: relative; }
+  .int-arrow-line::after { content: ''; position: absolute; right: -4px; top: -3px; border: 4px solid transparent; border-left-color: var(--accent); }
+  .int-arrow-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ─── FEEDBACK ──────────────────────────────── */
+  .feedback-bar { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .feedback-label { font-size: 13px; color: var(--text-muted); flex-shrink: 0; }
+  .feedback-btns { display: flex; gap: 8px; }
+  .fb-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r); font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); transition: all 0.15s; }
+  .fb-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  /* ─── MOBILE ─────────────────────────────────── */
+  .mobile-preview { width: 280px; background: var(--surface); border: 2px solid var(--border); border-radius: 24px; overflow: hidden; padding: 20px 16px; margin: 0 auto; }
+  .mobile-preview::before { content: ''; display: block; width: 80px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+  .mobile-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .mobile-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+  .mobile-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 12px; margin-bottom: 8px; }
+
+  /* ─── LIVE INDICATOR ─────────────────────────── */
+  .live-indicator { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.08em; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); animation: pulse 1.2s ease infinite; }
+
+  /* ─── INFO TAG ──────────────────────────────── */
+  .info-tag { display: inline-flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 4px 10px; font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+  .tooltip-hint { padding: 6px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); font-size: 11px; color: var(--text-muted); line-height: 1.5; font-style: italic; }
+
+  /* ─── FADE IN ──────────────────────────────── */
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ─── UTILIDADES ─────────────────────────── */
+  .mt-8{margin-top:8px} .mt-12{margin-top:12px} .mt-16{margin-top:16px} .mt-24{margin-top:24px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:768px){.grid-2{grid-template-columns:1fr}}
+
+  /* ─── SCROLLBAR ─────────────────────────────── */
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--border-glow)}
+
+  footer { text-align: center; padding: 60px 40px; border-top: 1px solid var(--border); color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span></span>Propuesta de Diseño v1.0 — SaaS HealthTech
+  </div>
+  <h1>SDP-<span>HEALTH</span></h1>
+  <p class="hero-sub">
+    Priorización Dinámica Estratégica y Gestión Inteligente del Flujo Hospitalario<br>
+    Propuesta integral de diseño UI/UX para la optimización de urgencias hospitalarias
+  </p>
+  <nav class="hero-nav">
+    <a href="#layout">① Estructura</a>
+    <a href="#registro">② Registro</a>
+    <a href="#triage">③ Motor de Triage</a>
+    <a href="#cola">④ Cola</a>
+    <a href="#tiempo">⑤ Predicciones</a>
+    <a href="#farmacia">⑥ Farmacia</a>
+    <a href="#dashboard">⑦ Dashboard</a>
+    <a href="#seguridad">⑧ Seguridad</a>
+    <a href="#personas">⑨ Personas</a>
+    <a href="#journey">⑩ Recorrido</a>
+  </nav>
+</section>
+
+<!-- ══════════════════════════════════════════ 01 ESTRUCTURA -->
+<div class="divider"></div>
+<section class="section fade-in" id="layout">
+  <div class="section-header">
+    <div class="section-num">01 / Estructura UI</div>
+    <div>
+      <div class="section-title">Shell de la Aplicación y Navegación</div>
+      <div class="section-desc">Diseño de tres columnas optimizado para mostrar información clínica de alta densidad con mínimo movimiento ocular. La barra lateral ancla la navegación por rol mientras el panel derecho muestra alertas contextuales y resúmenes de pacientes.</div>
+    </div>
+  </div>
+
+  <div class="layout-overview">
+    <div class="lo-topbar">
+      <div class="lo-logo">SDP·HEALTH</div>
+      <div style="display:flex;gap:8px;margin-left:16px;">
+        <div class="info-tag">🏥 Hospital General Memorial — Urgencias Sala 4</div>
+        <div class="live-indicator"><span class="live-dot"></span>En Vivo</div>
+      </div>
+      <div class="lo-topnav" style="margin-left:auto;">
+        <span class="active">Dashboard</span>
+        <span>Cola</span>
+        <span>Registrar</span>
+        <span>Reportes</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-left:20px;">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);">Dra. García ▸</div>
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--accent-dim);border:1px solid rgba(0,212,255,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;">👤</div>
+      </div>
+    </div>
+
+    <div class="lo-sidebar">
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;padding:4px 12px 8px;">Navegación</div>
+      <div class="lo-nav-item active"><div class="lo-nav-icon" style="background:var(--accent);opacity:1;"></div> Dashboard</div>
+      <div class="lo-nav-item"><div class="lo-nav-icon"></div> Cola de Pacientes</div>
+      <div class="lo-nav-item"><div class="lo-nav-icon"></div> Registro</div>
+      <div class="lo-nav-item"><div class="lo-nav-icon"></div> Motor de Triage</div>
+      <div class="lo-nav-item"><div class="lo-nav-icon"></div> Farmacia</div>
+      <div class="lo-nav-item"><div class="lo-nav-icon"></div> Analítica</div>
+      <div class="lo-nav-item"><div class="lo-nav-icon"></div> Sincronización HCE</div>
+      <div style="margin-top:auto;">
+        <div class="lo-nav-item"><div class="lo-nav-icon"></div> Configuración</div>
+        <div class="lo-nav-item"><div class="lo-nav-icon"></div> Ayuda</div>
+      </div>
+    </div>
+
+    <div class="lo-main">
+      <div class="kpi-row">
+        <div class="kpi-mini"><div class="kpi-mini-label">Pacientes Activos</div><div class="kpi-mini-value warn">43</div></div>
+        <div class="kpi-mini"><div class="kpi-mini-label">Críticos</div><div class="kpi-mini-value critical">7</div></div>
+        <div class="kpi-mini"><div class="kpi-mini-label">Espera Media</div><div class="kpi-mini-value ok">18m</div></div>
+        <div class="kpi-mini"><div class="kpi-mini-label">Camas Libres</div><div class="kpi-mini-value">12</div></div>
+      </div>
+      <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px;overflow:hidden;">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:8px;">ÁREA DE CONTENIDO PRINCIPAL — Cola / Registro / Analítica</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;gap:8px;align-items:center;padding:6px 8px;background:var(--critical-dim);border:1px solid rgba(255,59,59,0.2);border-radius:6px;">
+            <span class="triage-badge tb-critical" style="font-size:9px;padding:2px 6px;">N1</span>
+            <span style="font-size:11px;flex:1;">P-0047 · H·62 · Dolor torácico + diaforesis</span>
+            <span class="alert-badge" style="font-size:9px;padding:1px 6px;">Urgente</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;padding:6px 8px;background:var(--high-dim);border:1px solid rgba(255,136,0,0.2);border-radius:6px;">
+            <span class="triage-badge tb-high" style="font-size:9px;padding:2px 6px;">N2</span>
+            <span style="font-size:11px;flex:1;">P-0038 · M·34 · Disnea aguda</span>
+            <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);">14m espera</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;">
+            <span class="triage-badge tb-medium" style="font-size:9px;padding:2px 6px;">N3</span>
+            <span style="font-size:11px;flex:1;">P-0051 · H·28 · Laceración — antebrazo</span>
+            <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);">31m espera</span>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);padding:4px 8px;">+40 pacientes más en cola…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lo-right">
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;">Panel Contextual</div>
+      <div style="background:var(--critical-dim);border:1px solid rgba(255,59,59,0.3);border-radius:var(--r);padding:10px;">
+        <div style="font-size:10px;color:var(--critical);font-weight:600;margin-bottom:4px;">🚨 Alerta Crítica</div>
+        <div style="font-size:10px;color:var(--text-muted);">P-0047 vitales deteriorando — PA 88/60</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px;">
+        <div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">Capacidad de Camas</div>
+        <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;"><div style="height:100%;width:72%;background:linear-gradient(90deg,var(--low),var(--medium));border-radius:4px;"></div></div>
+        <div style="font-size:9px;color:var(--text-dim);margin-top:4px;">31 / 43 camas ocupadas</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px;flex:1;">
+        <div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:8px;">Recetas Pendientes (4)</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:10px;color:var(--text-muted);">• Amoxicilina 500mg — P-0039</div>
+          <div style="font-size:10px;color:var(--text-muted);">• Morfina 4mg IV — P-0047</div>
+          <div style="font-size:10px;color:var(--text-muted);">• Metoprolol 25mg — P-0052</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lo-bottom">
+      <div class="lo-status-dot"></div>
+      <span>Sincronización HL7/FHIR activa</span>
+      <span>·</span>
+      <span>Última actualización HCE: hace 12s</span>
+      <span>·</span>
+      <span>Sesión: Dra. Sofía García · Médica Adjunta · Turno 07:00–19:00</span>
+      <span style="margin-left:auto;">v3.2.1-prod</span>
+    </div>
+  </div>
+
+  <div class="tooltip-hint mt-16">
+    <strong>Justificación de diseño:</strong> La estructura de tres columnas mantiene los datos críticos visibles en todo momento sin necesidad de navegar. La barra lateral usa pares icono + etiqueta para rapidez; el panel contextual derecho se adapta al paciente seleccionado o al flujo de trabajo activo. La barra de estado inferior confirma la salud del sistema de un vistazo.
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ 02 REGISTRO -->
+<div class="divider"></div>
+<section class="section fade-in" id="registro">
+  <div class="section-header">
+    <div class="section-num">02 / Registro de Pacientes</div>
+    <div>
+      <div class="section-title">Formulario Clínico Estructurado de Admisión</div>
+      <div class="section-desc">Diseñado para completar el ingreso de datos en menos de 60 segundos en entornos de alta tensión. Las tarjetas de signos vitales usan entrada numérica directa con resaltado automático de anomalías. Los chips de síntomas reducen la dependencia del teclado.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Registro Nuevo Paciente</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="live-indicator"><span class="live-dot"></span>Autoguardado activo</div>
+        <div class="card-badge">Admisión Urgencias</div>
+      </div>
+    </div>
+    <div style="padding:24px;">
+      <div class="reg-form">
+        <!-- Columna izquierda -->
+        <div>
+          <div class="form-section-title">Identidad del Paciente</div>
+          <div class="field-group">
+            <div class="field-row">
+              <div>
+                <label class="field-label">Nombre(s) *</label>
+                <input type="text" class="field-input" placeholder="Nombre de pila" aria-label="Nombre">
+              </div>
+              <div>
+                <label class="field-label">Apellidos *</label>
+                <input type="text" class="field-input" placeholder="Apellidos" aria-label="Apellidos">
+              </div>
+            </div>
+            <div class="field-row">
+              <div>
+                <label class="field-label">Fecha de Nacimiento *</label>
+                <input type="text" class="field-input" placeholder="DD/MM/AAAA" aria-label="Fecha de nacimiento">
+              </div>
+              <div>
+                <label class="field-label">Edad</label>
+                <input type="text" class="field-input" placeholder="Cálculo auto" aria-label="Edad" style="background:var(--surface2);color:var(--text-muted);" readonly>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Sexo Biológico *</label>
+              <div style="display:flex;gap:8px;">
+                <div style="flex:1;padding:9px 12px;border:1px solid rgba(0,212,255,0.4);border-radius:var(--r);font-size:13px;cursor:pointer;text-align:center;background:var(--accent-dim);color:var(--accent);">Hombre</div>
+                <div style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;cursor:pointer;text-align:center;color:var(--text-muted);">Mujer</div>
+                <div style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;cursor:pointer;text-align:center;color:var(--text-muted);">Otro</div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div>
+                <label class="field-label">NHC / ID Paciente</label>
+                <input type="text" class="field-input" placeholder="Escanear o introducir" aria-label="Número de historia clínica">
+              </div>
+              <div>
+                <label class="field-label">Modo de Llegada</label>
+                <select class="field-input" style="appearance:none;" aria-label="Modo de llegada">
+                  <option>Propio pie</option>
+                  <option>Ambulancia</option>
+                  <option>Traslado</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Alergias Conocidas</label>
+              <input type="text" class="field-input" placeholder="ej. Penicilina, AINEs — separar con comas" aria-label="Alergias conocidas">
+            </div>
+          </div>
+
+          <div class="form-section-title" style="margin-top:24px;">Signos Vitales</div>
+          <div class="vital-grid">
+            <div class="vital-card vital-alert" tabindex="0">
+              <div class="vital-unit">mmHg</div>
+              <input class="vital-input" type="text" value="82/50" aria-label="Tensión arterial">
+              <div class="vital-name">Tensión Arterial</div>
+              <div style="font-family:var(--font-mono);font-size:9px;color:var(--critical);margin-top:3px;">⚠ Hipotensión Crítica</div>
+            </div>
+            <div class="vital-card vital-warn" tabindex="0">
+              <div class="vital-unit">lpm</div>
+              <input class="vital-input" type="text" value="118" aria-label="Frecuencia cardíaca">
+              <div class="vital-name">Frec. Cardíaca</div>
+              <div style="font-family:var(--font-mono);font-size:9px;color:var(--high);margin-top:3px;">↑ Taquicardia</div>
+            </div>
+            <div class="vital-card" tabindex="0">
+              <div class="vital-unit">°C</div>
+              <input class="vital-input" type="text" placeholder="—" aria-label="Temperatura">
+              <div class="vital-name">Temperatura</div>
+            </div>
+            <div class="vital-card" tabindex="0">
+              <div class="vital-unit">rpm</div>
+              <input class="vital-input" type="text" placeholder="—" aria-label="Frecuencia respiratoria">
+              <div class="vital-name">Frec. Respiratoria</div>
+            </div>
+            <div class="vital-card vital-alert" tabindex="0">
+              <div class="vital-unit">SpO₂ %</div>
+              <input class="vital-input" type="text" value="88" aria-label="Saturación de oxígeno">
+              <div class="vital-name">Saturación O₂</div>
+              <div style="font-family:var(--font-mono);font-size:9px;color:var(--critical);margin-top:3px;">⚠ Hipoxia</div>
+            </div>
+            <div class="vital-card" tabindex="0">
+              <div class="vital-unit">GCS /15</div>
+              <input class="vital-input" type="text" placeholder="—" aria-label="Glasgow">
+              <div class="vital-name">Escala Glasgow</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna derecha -->
+        <div>
+          <div class="form-section-title">Motivo de Consulta y Síntomas</div>
+          <div>
+            <label class="field-label">Motivo Principal *</label>
+            <input type="text" class="field-input" placeholder="Motivo de consulta principal" aria-label="Motivo de consulta">
+          </div>
+          <div style="margin-top:14px;">
+            <div class="field-label" style="margin-bottom:8px;">Selección Rápida de Síntomas (marcar todos los presentes)</div>
+            <div class="symptom-grid">
+              <div class="symptom-chip selected" role="button" tabindex="0"><span class="chip-dot"></span>Dolor Torácico</div>
+              <div class="symptom-chip selected" role="button" tabindex="0"><span class="chip-dot"></span>Disnea</div>
+              <div class="symptom-chip selected-med" role="button" tabindex="0"><span class="chip-dot medium"></span>Diaforesis</div>
+              <div class="symptom-chip" role="button" tabindex="0"><span class="chip-dot none"></span>Náuseas</div>
+              <div class="symptom-chip" role="button" tabindex="0"><span class="chip-dot none"></span>Síncope</div>
+              <div class="symptom-chip" role="button" tabindex="0"><span class="chip-dot none"></span>Cefalea</div>
+              <div class="symptom-chip" role="button" tabindex="0"><span class="chip-dot none"></span>Dolor Abdominal</div>
+              <div class="symptom-chip" role="button" tabindex="0"><span class="chip-dot none"></span>Traumatismo</div>
+              <div class="symptom-chip" role="button" tabindex="0"><span class="chip-dot low"></span>Fiebre</div>
+              <div class="symptom-chip" role="button" tabindex="0"><span class="chip-dot none"></span>Alt. Consciencia</div>
+              <div class="symptom-chip" role="button" tabindex="0"><span class="chip-dot none"></span>Vómitos</div>
+              <div class="symptom-chip" role="button" tabindex="0"><span class="chip-dot none"></span>Debilidad</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <label class="field-label">Escala de Dolor (0–10)</label>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+              <input type="range" min="0" max="10" value="8" style="flex:1;accent-color:var(--critical);" aria-label="Escala de dolor">
+              <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--critical);width:30px;text-align:center;">8</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:2px;">
+              <span style="font-size:9px;color:var(--text-dim);">Sin dolor</span>
+              <span style="font-size:9px;color:var(--text-dim);">Dolor insoportable</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <label class="field-label">Notas Clínicas Adicionales</label>
+            <textarea class="field-input" rows="4" placeholder="Contexto, inicio, antecedentes…" style="resize:vertical;" aria-label="Notas clínicas adicionales"></textarea>
+          </div>
+          <div style="margin-top:16px;padding:12px;background:var(--critical-dim);border:1px solid rgba(255,59,59,0.3);border-radius:var(--r);">
+            <div style="font-size:11px;color:var(--critical);font-weight:600;margin-bottom:4px;">🤖 Prevaolración IA</div>
+            <div style="font-size:11px;color:var(--text-muted);">Con base en PA 82/50, SpO₂ 88%, dolor torácico + diaforesis → Probable <strong style="color:var(--critical);">IAMCEST / Shock Cardiogénico</strong>. Se recomienda triage inmediato Nivel 1. Activar protocolo de Hemodinámica.</div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:20px;">
+            <button class="btn btn-primary" style="flex:2;">Enviar y Clasificar Automáticamente →</button>
+            <button class="btn btn-secondary" style="flex:1;">Guardar Borrador</button>
+            <button class="btn btn-danger" style="flex:1;">Limpiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ 03 TRIAGE -->
+<div class="divider"></div>
+<section class="section fade-in" id="triage">
+  <div class="section-header">
+    <div class="section-num">03 / Motor de Priorización Dinámica</div>
+    <div>
+      <div class="section-title">Puntuación de Triage con IA y Visualización</div>
+      <div class="section-desc">Puntuaciones de prioridad calculadas en tiempo real a partir de constantes vitales, edad, comorbilidades y gravedad sintomática usando el Índice de Gravedad en Urgencias (ESI) adaptado con pesos derivados de modelos de ML. La codificación de colores sigue los estándares internacionales de triage.</div>
+    </div>
+  </div>
+
+  <div class="triage-levels">
+    <div class="triage-card tc-1">
+      <div class="triage-level-num">1</div>
+      <div class="triage-label" style="color:var(--critical);">Reanimación</div>
+      <div class="triage-desc">Riesgo vital inmediato. Monitorización continua.</div>
+      <div class="triage-count" style="color:var(--critical);">7 pacientes</div>
+    </div>
+    <div class="triage-card tc-2">
+      <div class="triage-level-num">2</div>
+      <div class="triage-label" style="color:var(--high);">Emergente</div>
+      <div class="triage-desc">Situación de alto riesgo. Atender en 15 minutos.</div>
+      <div class="triage-count" style="color:var(--high);">11 pacientes</div>
+    </div>
+    <div class="triage-card tc-3">
+      <div class="triage-level-num">3</div>
+      <div class="triage-label" style="color:var(--medium);">Urgente</div>
+      <div class="triage-desc">Estable pero significativo. Atender en 30 min.</div>
+      <div class="triage-count" style="color:var(--medium);">15 pacientes</div>
+    </div>
+    <div class="triage-card tc-4">
+      <div class="triage-level-num">4</div>
+      <div class="triage-label" style="color:var(--low);">Menos Urgente</div>
+      <div class="triage-desc">No crítico. Atender en 60 minutos.</div>
+      <div class="triage-count" style="color:var(--low);">8 pacientes</div>
+    </div>
+    <div class="triage-card tc-5">
+      <div class="triage-level-num">5</div>
+      <div class="triage-label" style="color:var(--non-urgent);">No Urgente</div>
+      <div class="triage-desc">Rutinario. Puede dirigirse a consulta rápida.</div>
+      <div class="triage-count" style="color:var(--non-urgent);">2 pacientes</div>
+    </div>
+  </div>
+
+  <div class="card mt-24">
+    <div class="card-header">
+      <div class="card-title">Paciente P-0047 — Desglose de Puntuación</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="live-indicator"><span class="live-dot"></span>Recalculando cada 30s</div>
+        <div class="triage-badge tb-critical">Nivel 1 — Crítico</div>
+      </div>
+    </div>
+    <div style="padding:20px;">
+      <div class="score-display">
+        <div class="score-gauge">
+          <div class="gauge-ring">
+            <svg viewBox="0 0 100 100" width="100" height="100">
+              <circle class="gauge-bg" cx="50" cy="50" r="40"/>
+              <circle class="gauge-fill gauge-critical" cx="50" cy="50" r="40" stroke-dasharray="251.3" stroke-dashoffset="25"/>
+            </svg>
+            <div class="gauge-center">
+              <div class="gauge-score">94</div>
+              <div class="gauge-label">/100</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5;">Puntuación<br>de Prioridad</div>
+        </div>
+        <div class="score-factors">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Factores de Puntuación (ponderación ML)</div>
+          <div class="factor-row">
+            <div class="factor-name">Riesgo Cardiovascular</div>
+            <div class="factor-bar-wrap"><div class="factor-bar fb-critical" style="width:96%;"></div></div>
+            <div class="factor-score">96</div>
+          </div>
+          <div class="factor-row">
+            <div class="factor-name">Estado Hemodinámico</div>
+            <div class="factor-bar-wrap"><div class="factor-bar fb-critical" style="width:92%;"></div></div>
+            <div class="factor-score">92</div>
+          </div>
+          <div class="factor-row">
+            <div class="factor-name">Saturación de Oxígeno</div>
+            <div class="factor-bar-wrap"><div class="factor-bar fb-high" style="width:80%;"></div></div>
+            <div class="factor-score">80</div>
+          </div>
+          <div class="factor-row">
+            <div class="factor-name">Riesgo Ajustado por Edad</div>
+            <div class="factor-bar-wrap"><div class="factor-bar fb-high" style="width:75%;"></div></div>
+            <div class="factor-score">75</div>
+          </div>
+          <div class="factor-row">
+            <div class="factor-name">Carga de Comorbilidades</div>
+            <div class="factor-bar-wrap"><div class="factor-bar fb-medium" style="width:60%;"></div></div>
+            <div class="factor-score">60</div>
+          </div>
+          <div class="factor-row">
+            <div class="factor-name">Gravedad Sintomática</div>
+            <div class="factor-bar-wrap"><div class="factor-bar fb-critical" style="width:90%;"></div></div>
+            <div class="factor-score">90</div>
+          </div>
+          <div class="factor-row">
+            <div class="factor-name">Estado Neurológico</div>
+            <div class="factor-bar-wrap"><div class="factor-bar fb-low" style="width:40%;"></div></div>
+            <div class="factor-score">40</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ 04 COLA -->
+<div class="divider"></div>
+<section class="section fade-in" id="cola">
+  <div class="section-header">
+    <div class="section-num">04 / Gestión de la Cola</div>
+    <div>
+      <div class="section-title">Interfaz de Cola de Pacientes en Tiempo Real</div>
+      <div class="section-desc">La cola se ordena automáticamente por puntuación de prioridad dinámica con actualizaciones en tiempo real. Los pacientes críticos parpadean con alertas visuales. El personal puede filtrar, asignar camas y escalar directamente desde la cola.</div>
+    </div>
+  </div>
+
+  <div class="queue-filters">
+    <div class="filter-chip active">Todos (43)</div>
+    <div class="filter-chip"><span class="filter-dot" style="background:var(--critical);"></span>Críticos (7)</div>
+    <div class="filter-chip"><span class="filter-dot" style="background:var(--high);"></span>Altos (11)</div>
+    <div class="filter-chip"><span class="filter-dot" style="background:var(--medium);"></span>Moderados (15)</div>
+    <div class="filter-chip"><span class="filter-dot" style="background:var(--low);"></span>Bajos (8)</div>
+    <div class="filter-chip">En Espera</div>
+    <div class="filter-chip">En Tratamiento</div>
+    <div class="filter-chip">Pendiente Alta</div>
+    <div style="margin-left:auto;">
+      <input type="text" class="field-input" placeholder="Buscar por nombre, NHC, box…" style="width:240px;" aria-label="Buscar en cola">
+    </div>
+  </div>
+
+  <div class="card">
+    <table class="queue-table">
+      <thead class="qt-head">
+        <tr>
+          <th>Prioridad</th>
+          <th>Paciente</th>
+          <th>Edad/Sexo</th>
+          <th>Motivo Principal</th>
+          <th>Constantes</th>
+          <th>Tiempo Espera</th>
+          <th>Estado</th>
+          <th>Asignado a</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="qt-row critical-row">
+          <td><span class="triage-badge tb-critical">N1 — 94pts</span></td>
+          <td><div style="font-weight:600;font-size:12px;">P-0047</div><div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">J. Morales</div></td>
+          <td>62, H</td>
+          <td>Dolor torácico + disnea</td>
+          <td><span style="font-family:var(--font-mono);font-size:11px;color:var(--critical);">PA 82/50 · FC 118 · SpO₂ 88%</span></td>
+          <td><span style="font-family:var(--font-display);font-weight:700;color:var(--critical);">02m</span></td>
+          <td><span class="status-badge critical-status">Reanimación</span></td>
+          <td>Dra. García</td>
+          <td>
+            <div style="display:flex;gap:4px;">
+              <button class="btn btn-danger" style="padding:4px 10px;font-size:10px;">Alertar Equipo</button>
+              <span class="alert-badge">⚡ STAT</span>
+            </div>
+          </td>
+        </tr>
+        <tr class="qt-row">
+          <td><span class="triage-badge tb-high">N2 — 81pts</span></td>
+          <td><div style="font-weight:600;font-size:12px;">P-0038</div><div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">A. Blanco</div></td>
+          <td>34, M</td>
+          <td>Disnea aguda, sibilancias</td>
+          <td><span style="font-family:var(--font-mono);font-size:11px;color:var(--high);">FR 28 · SpO₂ 92% · FC 102</span></td>
+          <td><span style="font-family:var(--font-display);font-weight:700;color:var(--high);">14m</span></td>
+          <td><span class="status-badge treatment">En Valoración</span></td>
+          <td>Dr. Patel</td>
+          <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:10px;">Ver Historia</button></td>
+        </tr>
+        <tr class="qt-row">
+          <td><span class="triage-badge tb-medium">N3 — 62pts</span></td>
+          <td><div style="font-weight:600;font-size:12px;">P-0051</div><div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">D. Huang</div></td>
+          <td>28, H</td>
+          <td>Laceración — antebrazo derecho</td>
+          <td><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">PA 124/78 · FC 88 · SpO₂ 99%</span></td>
+          <td><span style="font-family:var(--font-display);font-weight:700;color:var(--medium);">31m</span></td>
+          <td><span class="status-badge waiting">En Espera</span></td>
+          <td>Sin asignar</td>
+          <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:10px;">Asignar Cama</button></td>
+        </tr>
+        <tr class="qt-row">
+          <td><span class="triage-badge tb-low">N4 — 38pts</span></td>
+          <td><div style="font-weight:600;font-size:12px;">P-0044</div><div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">M. Okafor</div></td>
+          <td>45, M</td>
+          <td>Síntomas ITU, febrícula</td>
+          <td><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">PA 118/76 · FC 82 · Temp 37.9°C</span></td>
+          <td><span style="font-family:var(--font-display);font-weight:700;color:var(--low);">48m</span></td>
+          <td><span class="status-badge waiting">En Espera</span></td>
+          <td>Sin asignar</td>
+          <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:10px;">Ver Historia</button></td>
+        </tr>
+        <tr class="qt-row">
+          <td><span class="triage-badge tb-non">N5 — 18pts</span></td>
+          <td><div style="font-weight:600;font-size:12px;">P-0033</div><div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">T. Svensson</div></td>
+          <td>22, H</td>
+          <td>Esguince tobillo leve</td>
+          <td><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">PA 120/80 · FC 72 · Normal</span></td>
+          <td><span style="font-family:var(--font-display);font-weight:700;color:var(--non-urgent);">1h 12m</span></td>
+          <td><span class="status-badge waiting">En Espera</span></td>
+          <td>Sin asignar</td>
+          <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:10px;">Vía Rápida</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ 05 TIEMPOS -->
+<div class="divider"></div>
+<section class="section fade-in" id="tiempo">
+  <div class="section-header">
+    <div class="section-num">05 / Estimación Predictiva de Tiempos</div>
+    <div>
+      <div class="section-title">Pronóstico de Tiempos de Espera con IA</div>
+      <div class="section-desc">Los modelos predictivos consideran la profundidad actual de la cola, la disponibilidad de personal, el rendimiento histórico y los patrones por hora del día. Los intervalos de confianza muestran la incertidumbre para que el personal tome decisiones informadas.</div>
+    </div>
+  </div>
+
+  <div class="time-display">
+    <div class="time-card warn-time">
+      <div class="time-label">N1 · Reanimación</div>
+      <div class="time-value" style="color:var(--critical);">0 <span class="time-unit">min</span></div>
+      <div style="font-size:11px;color:var(--critical);">Inmediato — Sin espera</div>
+    </div>
+    <div class="time-card warn-time">
+      <div class="time-label">N2 · Emergente</div>
+      <div class="time-value" style="color:var(--high);">14 <span class="time-unit">min</span></div>
+      <div class="time-trend trend-up">↑ +3m vs. base</div>
+      <div class="time-confidence">
+        <span>Confianza</span>
+        <div class="conf-bar"><div class="conf-fill" style="width:87%;"></div></div>
+        <span style="font-family:var(--font-mono);font-size:10px;">87%</span>
+      </div>
+    </div>
+    <div class="time-card">
+      <div class="time-label">N3 · Urgente</div>
+      <div class="time-value">31 <span class="time-unit">min</span></div>
+      <div class="time-trend trend-stable">→ En línea base</div>
+      <div class="time-confidence">
+        <span>Confianza</span>
+        <div class="conf-bar"><div class="conf-fill" style="width:82%;"></div></div>
+        <span style="font-family:var(--font-mono);font-size:10px;">82%</span>
+      </div>
+    </div>
+    <div class="time-card ok-time">
+      <div class="time-label">N4 · Menos Urgente</div>
+      <div class="time-value" style="color:var(--low);">48 <span class="time-unit">min</span></div>
+      <div class="time-trend trend-down">↓ −12m mejorado</div>
+      <div class="time-confidence">
+        <span>Confianza</span>
+        <div class="conf-bar"><div class="conf-fill" style="width:74%;background:var(--low);"></div></div>
+        <span style="font-family:var(--font-mono);font-size:10px;">74%</span>
+      </div>
+    </div>
+    <div class="time-card ok-time">
+      <div class="time-label">N5 · No Urgente</div>
+      <div class="time-value" style="color:var(--non-urgent);">72 <span class="time-unit">min</span></div>
+      <div class="time-trend trend-stable">→ Rango normal</div>
+      <div class="time-confidence">
+        <span>Confianza</span>
+        <div class="conf-bar"><div class="conf-fill" style="width:68%;background:var(--non-urgent);"></div></div>
+        <span style="font-family:var(--font-mono);font-size:10px;">68%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-area mt-16">
+    <div class="chart-title">
+      <span>Volumen de Llegadas Predicho — Próximas 8 Horas</span>
+      <div class="live-indicator"><span class="live-dot"></span>Pronóstico ML</div>
+    </div>
+    <div class="chart-mock">
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:55%;background:var(--medium);opacity:0.9;"></div><div class="chart-bar-label">14:00</div></div>
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:70%;background:var(--high);opacity:0.9;"></div><div class="chart-bar-label">15:00</div></div>
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:85%;background:var(--critical);"></div><div class="chart-bar-label">16:00</div></div>
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:90%;background:var(--critical);"></div><div class="chart-bar-label">17:00</div></div>
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:80%;background:var(--high);opacity:0.9;"></div><div class="chart-bar-label">18:00</div></div>
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:65%;background:var(--medium);opacity:0.6;"></div><div class="chart-bar-label">19:00</div></div>
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:50%;background:var(--medium);opacity:0.5;"></div><div class="chart-bar-label">20:00</div></div>
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:40%;background:var(--low);opacity:0.4;"></div><div class="chart-bar-label">21:00</div></div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--high);margin-top:10px;">⚠ Pico de saturación previsto 16:00–18:00 — considerar activar Protocolo de Saturación</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ 06 FARMACIA -->
+<div class="divider"></div>
+<section class="section fade-in" id="farmacia">
+  <div class="section-header">
+    <div class="section-num">06 / Integración con Farmacia</div>
+    <div>
+      <div class="section-title">Receta Digital e Interfaz de Dispensación</div>
+      <div class="section-desc">Los médicos generan recetas electrónicas que se enrutan instantáneamente a farmacia. La comprobación de interacciones se ejecuta en tiempo real. El personal de farmacia recibe notificaciones push con actualizaciones de estado.</div>
+    </div>
+  </div>
+
+  <div class="rx-container">
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Nueva Receta — P-0047 · J. Morales · 62H</div>
+          <div class="card-badge">Modo Prescripción</div>
+        </div>
+        <div style="padding:20px;">
+          <div class="rx-form">
+            <div style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:8px;">Medicamentos Prescritos</div>
+            <div class="drug-row">
+              <div>
+                <div class="drug-name">Sulfato de Morfina IV</div>
+                <div style="font-size:10px;color:var(--text-dim);">Analgésico opioide</div>
+              </div>
+              <div class="drug-dose">4 mg</div>
+              <div class="drug-freq">Cada 4h PRN</div>
+              <div class="drug-freq">48h</div>
+              <button class="btn btn-danger" style="padding:4px 8px;font-size:10px;">✕</button>
+            </div>
+            <div class="drug-row">
+              <div>
+                <div class="drug-name">Ácido Acetilsalicílico EC</div>
+                <div style="font-size:10px;color:var(--text-dim);">Antiagregante plaquetario</div>
+              </div>
+              <div class="drug-dose">300 mg</div>
+              <div class="drug-freq">Stat, luego QD</div>
+              <div class="drug-freq">Indefinido</div>
+              <button class="btn btn-danger" style="padding:4px 8px;font-size:10px;">✕</button>
+            </div>
+            <div class="interaction-warning">
+              <span style="font-size:18px;">⚠</span>
+              <div>
+                <div style="font-weight:600;font-size:12px;">Interacción Medicamentosa Detectada</div>
+                <div style="font-size:11px;margin-top:2px;">Morfina + betabloqueante concomitante (Metoprolol) — vigilar efecto hipotensor potenciado. Considerar ajuste de dosis.</div>
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-secondary" style="width:100%;justify-content:center;">+ Añadir Medicamento</button>
+            </div>
+            <div class="field-row">
+              <div>
+                <label class="field-label">Vía de Administración</label>
+                <select class="field-input" style="appearance:none;" aria-label="Vía">
+                  <option>IV — Intravenosa</option>
+                  <option>VO — Vía Oral</option>
+                  <option>IM — Intramuscular</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Prioridad</label>
+                <select class="field-input" style="appearance:none;" aria-label="Prioridad">
+                  <option>STAT — Inmediato</option>
+                  <option>Urgente — 30 min</option>
+                  <option>Rutinaria</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Notas del Prescriptor para Farmacia</label>
+              <textarea class="field-input" rows="2" placeholder="Instrucciones especiales…" aria-label="Notas prescriptor"></textarea>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-primary" style="flex:2;">Enviar a Farmacia ▸</button>
+              <button class="btn btn-secondary" style="flex:1;">Imprimir Receta</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="rx-sidebar-card">
+        <div class="card-header">
+          <div class="card-title">Cola de Farmacia</div>
+          <div class="live-indicator"><span class="live-dot"></span>En Vivo</div>
+        </div>
+        <div class="rx-notification">
+          <div class="notif-icon ni-urgent">💊</div>
+          <div class="notif-text">
+            <div class="notif-title">Morfina 4mg — P-0047</div>
+            <div class="notif-sub">STAT · Dispensación en curso</div>
+          </div>
+          <div class="notif-time">Ahora</div>
+        </div>
+        <div class="rx-notification">
+          <div class="notif-icon ni-pending">⏳</div>
+          <div class="notif-text">
+            <div class="notif-title">Amoxicilina 500mg — P-0039</div>
+            <div class="notif-sub">Urgente · Pendiente farmacéutico</div>
+          </div>
+          <div class="notif-time">Hace 3m</div>
+        </div>
+        <div class="rx-notification">
+          <div class="notif-icon ni-ready">✓</div>
+          <div class="notif-text">
+            <div class="notif-title">Metoprolol 25mg — P-0052</div>
+            <div class="notif-sub">Listo para recoger · Box 3</div>
+          </div>
+          <div class="notif-time">Hace 7m</div>
+        </div>
+        <div class="rx-notification">
+          <div class="notif-icon ni-pending">⏳</div>
+          <div class="notif-text">
+            <div class="notif-title">Ceftriaxona 1g IV — P-0044</div>
+            <div class="notif-sub">Rutinaria · En preparación</div>
+          </div>
+          <div class="notif-time">Hace 12m</div>
+        </div>
+      </div>
+      <div class="tooltip-hint mt-12">
+        <strong>Vista del farmacéutico:</strong> Las notificaciones se apilan por prioridad. Los pedidos STAT muestran estilo rojo distintivo con alerta sonora. Las recetas listas muestran confirmación verde.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ 07 DASHBOARD -->
+<div class="divider"></div>
+<section class="section fade-in" id="dashboard">
+  <div class="section-header">
+    <div class="section-num">07 / Dashboard Administrativo</div>
+    <div>
+      <div class="section-title">KPIs y Analítica de Rendimiento</div>
+      <div class="section-desc">La dirección hospitalaria y los supervisores de guardia obtienen una visión operativa en tiempo real. Los KPIs están comparados con los estándares NEDOCS. Los gráficos interactivos facilitan el análisis de causa raíz y la planificación de capacidad.</div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon">🏥</div>
+      <div class="kpi-value">43</div>
+      <div class="kpi-label">Pacientes Activos</div>
+      <div class="kpi-delta neutral">= Estable</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:var(--critical-dim);border-color:rgba(255,59,59,0.2);">🚨</div>
+      <div class="kpi-value" style="color:var(--critical);">7</div>
+      <div class="kpi-label">Casos Críticos (N1–N2)</div>
+      <div class="kpi-delta negative">↑ +2 última hora</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:var(--low-dim);border-color:rgba(0,200,83,0.2);">⏱</div>
+      <div class="kpi-value" style="color:var(--low);">18m</div>
+      <div class="kpi-label">Tiempo de Espera Mediano</div>
+      <div class="kpi-delta positive">↓ −4m mejorado</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">🛏</div>
+      <div class="kpi-value">72<span style="font-size:18px;color:var(--text-muted);">%</span></div>
+      <div class="kpi-label">Ocupación de Camas</div>
+      <div class="kpi-delta neutral">= Dentro del objetivo</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:var(--high-dim);border-color:rgba(255,136,0,0.2);">📊</div>
+      <div class="kpi-value">2.4</div>
+      <div class="kpi-label">Puntuación NEDOCS</div>
+      <div class="kpi-delta negative">↑ Saturación</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:var(--accent-dim);">💊</div>
+      <div class="kpi-value">4</div>
+      <div class="kpi-label">Recetas Pendientes</div>
+      <div class="kpi-delta neutral">= Normal</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:var(--low-dim);border-color:rgba(0,200,83,0.2);">✓</div>
+      <div class="kpi-value" style="color:var(--low);">94<span style="font-size:18px;color:var(--text-muted);">%</span></div>
+      <div class="kpi-label">Resp. N1 ≤5min</div>
+      <div class="kpi-delta positive">↑ Por encima del objetivo</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">👨‍⚕️</div>
+      <div class="kpi-value">11</div>
+      <div class="kpi-label">Personal en Turno</div>
+      <div class="kpi-delta neutral">= Dotación completa</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mt-24">
+    <div class="chart-area" style="margin-top:0;">
+      <div class="chart-title">
+        <span>Llegadas de Pacientes — Últimas 12 Horas</span>
+        <div class="info-tag">Por hora</div>
+      </div>
+      <div class="chart-mock" style="height:100px;">
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:45%;background:var(--accent);opacity:0.7;"></div><div class="chart-bar-label">02h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:30%;background:var(--accent);opacity:0.7;"></div><div class="chart-bar-label">03h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:25%;background:var(--accent);opacity:0.7;"></div><div class="chart-bar-label">04h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:35%;background:var(--accent);opacity:0.7;"></div><div class="chart-bar-label">05h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:50%;background:var(--accent);opacity:0.7;"></div><div class="chart-bar-label">06h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:70%;background:var(--accent);opacity:0.7;"></div><div class="chart-bar-label">07h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:85%;background:var(--high);"></div><div class="chart-bar-label">08h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:95%;background:var(--critical);"></div><div class="chart-bar-label">09h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:90%;background:var(--critical);"></div><div class="chart-bar-label">10h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:88%;background:var(--high);"></div><div class="chart-bar-label">11h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:80%;background:var(--high);"></div><div class="chart-bar-label">12h</div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:75%;background:var(--medium);"></div><div class="chart-bar-label">13h</div></div>
+      </div>
+    </div>
+    <div class="chart-area" style="margin-top:0;">
+      <div class="chart-title">
+        <span>Distribución por Nivel de Triage</span>
+        <div class="info-tag">Hoy</div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <svg width="100" height="100" viewBox="0 0 100 100" style="flex-shrink:0;">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="#1a2e42" stroke-width="18"/>
+          <circle cx="50" cy="50" r="40" fill="none" stroke="var(--critical)" stroke-width="18" stroke-dasharray="50.3 201.1" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="40" fill="none" stroke="var(--high)" stroke-width="18" stroke-dasharray="69.1 182.2" stroke-dashoffset="-50.3" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="40" fill="none" stroke="var(--medium)" stroke-width="18" stroke-dasharray="75.4 175.9" stroke-dashoffset="-119.4" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="40" fill="none" stroke="var(--low)" stroke-width="18" stroke-dasharray="40.2 211.1" stroke-dashoffset="-194.8" transform="rotate(-90 50 50)"/>
+        </svg>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--critical);"></div> N1 Reanimación — 16%</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--high);"></div> N2 Emergente — 26%</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--medium);"></div> N3 Urgente — 35%</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--low);"></div> N4/N5 Baja prioridad — 23%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ 08 SEGURIDAD -->
+<div class="divider"></div>
+<section class="section fade-in" id="seguridad">
+  <div class="section-header">
+    <div class="section-num">08 / Seguridad y Cumplimiento Normativo</div>
+    <div>
+      <div class="section-title">UX de Seguridad Alineada con LOPD y RGPD</div>
+      <div class="section-desc">Las medidas de seguridad están integradas visualmente en el flujo de trabajo: nunca intrusivas, siempre tranquilizadoras. El control de acceso basado en roles, el registro de auditoría y el enmascaramiento de datos operan de forma transparente con indicadores de confianza visibles.</div>
+    </div>
+  </div>
+
+  <div class="security-grid">
+    <div class="security-card">
+      <div class="sec-icon">🔐</div>
+      <div>
+        <div class="sec-title">Control de Acceso Basado en Roles (RBAC)</div>
+        <div class="sec-desc">Cada pantalla muestra el rol actual del usuario y su nivel de acceso. Los campos restringidos aparecen visiblemente difuminados para roles no autorizados. Los intentos de acceso no autorizado muestran una UI de acceso denegado clara con notificación al registro de auditoría.</div>
+        <div class="compliance-badges">
+          <span class="comp-badge">RGPD Art.5</span>
+          <span class="comp-badge">LOPD-GDD</span>
+          <span class="comp-badge">ISO 27001</span>
+        </div>
+      </div>
+    </div>
+    <div class="security-card">
+      <div class="sec-icon">🔏</div>
+      <div>
+        <div class="sec-title">Cifrado Extremo a Extremo</div>
+        <div class="sec-desc">Un icono de candado persistente e indicador "Sesión Segura" en la barra de estado tranquilizan al usuario. TLS 1.3 en tránsito, AES-256 en reposo. Enmascaramiento de datos en campos con información personal hasta la interacción activa.</div>
+        <div class="compliance-badges">
+          <span class="comp-badge">TLS 1.3</span>
+          <span class="comp-badge">AES-256</span>
+        </div>
+      </div>
+    </div>
+    <div class="security-card">
+      <div class="sec-icon">📋</div>
+      <div>
+        <div class="sec-title">Registro de Auditoría Inmutable</div>
+        <div class="sec-desc">Cada acción clínica — ver, editar, prescribir, dar el alta — queda con marca de tiempo y autoría. Los clínicos ven un sutil tooltip "Acciones registradas". Los administradores acceden a un panel de auditoría con búsqueda.</div>
+        <div class="compliance-badges">
+          <span class="comp-badge">RGPD Art.30</span>
+          <span class="comp-badge">ENS</span>
+        </div>
+      </div>
+    </div>
+    <div class="security-card">
+      <div class="sec-icon">⏱</div>
+      <div>
+        <div class="sec-title">Bloqueo Automático y Tiempo de Sesión</div>
+        <div class="sec-desc">Aparece un temporizador visual a 2 minutos de inactividad. Reautenticación con un toque mediante biometría o PIN. Previene accesos no autorizados en estaciones de trabajo compartidas sin interrumpir el flujo de trabajo.</div>
+        <div class="compliance-badges">
+          <span class="comp-badge">RGPD Art.32</span>
+        </div>
+      </div>
+    </div>
+    <div class="security-card">
+      <div class="sec-icon">🛡</div>
+      <div>
+        <div class="sec-title">Autenticación Multifactor (MFA)</div>
+        <div class="sec-desc">MFA requerida al inicio de sesión y para operaciones sensibles (prescribir sustancias controladas, exportar registros). La UI ofrece un flujo TOTP o aprobación push sin fricciones que minimiza la interrupción del trabajo clínico.</div>
+        <div class="compliance-badges">
+          <span class="comp-badge">NIST 800-63</span>
+          <span class="comp-badge">ENS Alto</span>
+        </div>
+      </div>
+    </div>
+    <div class="security-card">
+      <div class="sec-icon">🔍</div>
+      <div>
+        <div class="sec-title">Minimización y Enmascaramiento de Datos</div>
+        <div class="sec-desc">Los nombres de pacientes aparecen parcialmente enmascarados en vistas de lista (ej. "J. M●●●●●les"). Los datos completos se revelan solo con interacción directa. Las exportaciones e impresiones requieren justificación y aprobación del supervisor.</div>
+        <div class="compliance-badges">
+          <span class="comp-badge">RGPD Art.25</span>
+          <span class="comp-badge">LOPD</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ 09 PERSONAS -->
+<div class="divider"></div>
+<section class="section fade-in" id="personas">
+  <div class="section-header">
+    <div class="section-num">09 / Perfiles de Usuario (Personas)</div>
+    <div>
+      <div class="section-title">Adaptación de la Interfaz por Rol</div>
+      <div class="section-desc">SDP-HEALTH adapta su diseño, densidad de información y patrones de interacción según el rol del usuario autenticado. Cada perfil tiene necesidades y demandas cognitivas distintas.</div>
+    </div>
+  </div>
+
+  <div class="persona-grid">
+    <div class="persona-card">
+      <div class="persona-avatar pa-physician">🩺</div>
+      <div class="persona-role">Médico Adjunto</div>
+      <div class="persona-name">Dra. Sofía García</div>
+      <div style="font-size:12px;color:var(--text-muted);">Más de 10 años en urgencias, gestiona 8–15 pacientes por turno, utiliza múltiples herramientas de soporte simultáneamente.</div>
+      <ul class="persona-needs">
+        <li>Alertas críticas visibles sin necesidad de desplazarse</li>
+        <li>Acceso a la historia clínica completa con un toque</li>
+        <li>Puntuación IA con desglose de factores explicables</li>
+        <li>Prescripción rápida con alertas de interacciones</li>
+        <li>Lectura/escritura en HCE sin salir del flujo de trabajo</li>
+      </ul>
+    </div>
+    <div class="persona-card">
+      <div class="persona-avatar pa-nurse">👩‍⚕️</div>
+      <div class="persona-role">Enfermera/o de Triage</div>
+      <div class="persona-name">Enf. Alex Torres</div>
+      <div style="font-size:12px;color:var(--text-muted);">Primer contacto clínico con el paciente. Trabaja a ritmo rápido en entorno ruidoso. Frecuentemente utiliza estaciones de trabajo compartidas.</div>
+      <ul class="persona-needs">
+        <li>Formulario de registro en menos de 60 segundos</li>
+        <li>Selección rápida de síntomas sin escribir</li>
+        <li>Retroalimentación inmediata de prevaloración IA</li>
+        <li>Confirmación visual clara del nivel de triage al enviar</li>
+        <li>Integración con lectores de código de barras y tarjetas</li>
+      </ul>
+    </div>
+    <div class="persona-card">
+      <div class="persona-avatar pa-admin">📊</div>
+      <div class="persona-role">Supervisor/a de Guardia</div>
+      <div class="persona-name">Elena Blackwood</div>
+      <div style="font-size:12px;color:var(--text-muted);">Supervisa las operaciones de urgencias, la asignación de camas, el personal y el cumplimiento. Necesita conciencia situacional en tiempo real de todo el servicio.</div>
+      <ul class="persona-needs">
+        <li>Dashboard completo de KPIs al iniciar sesión</li>
+        <li>Avisos predictivos de saturación con sugerencias de personal</li>
+        <li>Controles de gestión y asignación de camas</li>
+        <li>Informes de cambio de turno y herramientas de exportación</li>
+        <li>Seguimiento de métricas NEDOCS y cumplimiento normativo</li>
+      </ul>
+    </div>
+    <div class="persona-card">
+      <div class="persona-avatar pa-pharmacist">💊</div>
+      <div class="persona-role">Farmacéutico/a Hospitalario</div>
+      <div class="persona-name">Dr. Marcos Webb</div>
+      <div style="font-size:12px;color:var(--text-muted);">Revisa y dispensa medicamentos. Necesita detectar interacciones, confirmar dosis y comunicar el estado de dispensación al equipo clínico.</div>
+      <ul class="persona-needs">
+        <li>Cola de recetas priorizada con indicadores STAT</li>
+        <li>Alertas automáticas de interacciones medicamentosas</li>
+        <li>Cruce de alergias del paciente al recibir la prescripción</li>
+        <li>Actualización del estado de dispensación con un clic</li>
+        <li>Flujo de autorización para estupefacientes y psicotrópicos</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ 10 JOURNEY -->
+<div class="divider"></div>
+<section class="section fade-in" id="journey">
+  <div class="section-header">
+    <div class="section-num">10 / Mapa de Recorrido del Usuario</div>
+    <div>
+      <div class="section-title">Flujo del Paciente a Través de SDP-HEALTH</div>
+      <div class="section-desc">Desde la llegada hasta el alta, cada punto de contacto está mapeado a una interacción del sistema. Múltiples perfiles colaboran a través de datos compartidos con vistas apropiadas a cada rol en cada paso.</div>
+    </div>
+  </div>
+
+  <div class="journey-flow">
+    <div class="journey-step">
+      <div class="journey-node">
+        <div class="journey-step-num">01</div>
+        <div class="journey-step-title">Llegada y Check-in</div>
+        <div class="journey-step-desc">El paciente llega. La enfermera escanea el DNI o registra manualmente. La búsqueda por NHC autocompleta datos existentes.</div>
+        <div class="journey-persona">Enfermera de Triage</div>
+      </div>
+    </div>
+    <div class="journey-step">
+      <div class="journey-node">
+        <div class="journey-step-num">02</div>
+        <div class="journey-step-title">Toma de Constantes</div>
+        <div class="journey-step-desc">Constantes vitales introducidas manualmente o importadas automáticamente desde monitores conectados (IoMT).</div>
+        <div class="journey-persona">Enfermera de Triage</div>
+      </div>
+    </div>
+    <div class="journey-step">
+      <div class="journey-node">
+        <div class="journey-step-num">03</div>
+        <div class="journey-step-title">Clasificación IA</div>
+        <div class="journey-step-desc">El motor calcula la puntuación en menos de 2 segundos. La enfermera revisa y confirma o anula el nivel de triage.</div>
+        <div class="journey-persona">Enfermera + IA</div>
+      </div>
+    </div>
+    <div class="journey-step">
+      <div class="journey-node">
+        <div class="journey-step-num">04</div>
+        <div class="journey-step-title">Entrada en Cola</div>
+        <div class="journey-step-desc">El paciente entra en la cola ordenada. El supervisor de guardia ve la capacidad de camas actualizada en tiempo real.</div>
+        <div class="journey-persona">Supervisor de Guardia</div>
+      </div>
+    </div>
+    <div class="journey-step">
+      <div class="journey-node">
+        <div class="journey-step-num">05</div>
+        <div class="journey-step-title">Valoración Médica</div>
+        <div class="journey-step-desc">El médico abre la historia clínica, revisa los datos IA, realiza la exploración y documenta los hallazgos.</div>
+        <div class="journey-persona">Médico Adjunto</div>
+      </div>
+    </div>
+    <div class="journey-step">
+      <div class="journey-node">
+        <div class="journey-step-num">06</div>
+        <div class="journey-step-title">Tratamiento y Receta</div>
+        <div class="journey-step-desc">El médico prescribe medicamentos. Farmacia recibe notificación STAT con comprobación de interacciones.</div>
+        <div class="journey-persona">Médico + Farmacéutico</div>
+      </div>
+    </div>
+    <div class="journey-step">
+      <div class="journey-node">
+        <div class="journey-step-num">07</div>
+        <div class="journey-step-title">Monitorización Continua</div>
+        <div class="journey-step-desc">Las constantes se repuntuán continuamente. Las alertas se activan si el paciente empeora. La puntuación actualiza la posición en la cola.</div>
+        <div class="journey-persona">Enfermera + IA</div>
+      </div>
+    </div>
+    <div class="journey-step">
+      <div class="journey-node">
+        <div class="journey-step-num">08</div>
+        <div class="journey-step-title">Alta / Ingreso</div>
+        <div class="journey-step-desc">El médico genera el informe de alta u orden de ingreso. La HCE se actualiza. La cama queda libre en tiempo real.</div>
+        <div class="journey-persona">Médico + Admin</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ INTEGRACIÓN HCE -->
+<div class="divider"></div>
+<section class="section fade-in">
+  <div class="section-header">
+    <div class="section-num">11 / Integración con Sistemas Hospitalarios</div>
+    <div>
+      <div class="section-title">Arquitectura de Integración con HCE</div>
+      <div class="section-desc">SDP-HEALTH está diseñado como una capa sobre la infraestructura hospitalaria existente, comunicándose vía HL7 FHIR R4. No requiere reemplazar sistemas actuales — potencia y mejora la HCE existente.</div>
+    </div>
+  </div>
+
+  <div class="integration-row">
+    <div class="int-node">
+      <div class="int-icon">🏥</div>
+      <div class="int-label">SAP / Selene</div>
+      <div class="int-sub">HCE Existente</div>
+    </div>
+    <div class="int-arrow">
+      <div class="int-arrow-line"></div>
+      <div class="int-arrow-label">HL7 FHIR R4</div>
+    </div>
+    <div class="int-node center">
+      <div class="int-icon">⚡</div>
+      <div class="int-label">SDP-HEALTH</div>
+      <div class="int-sub">Plataforma Central</div>
+    </div>
+    <div class="int-arrow">
+      <div class="int-arrow-line"></div>
+      <div class="int-arrow-label">REST / HL7</div>
+    </div>
+    <div class="int-node">
+      <div class="int-icon">💊</div>
+      <div class="int-label">Farmacia / SIFI</div>
+      <div class="int-sub">Sistema de Dispensación</div>
+    </div>
+    <div class="int-arrow">
+      <div class="int-arrow-line"></div>
+      <div class="int-arrow-label">DICOM / API</div>
+    </div>
+    <div class="int-node">
+      <div class="int-icon">🔬</div>
+      <div class="int-label">Lab / Radiología</div>
+      <div class="int-sub">PACS / SIL</div>
+    </div>
+    <div class="int-arrow">
+      <div class="int-arrow-line"></div>
+      <div class="int-arrow-label">HL7 v2.x</div>
+    </div>
+    <div class="int-node">
+      <div class="int-icon">📡</div>
+      <div class="int-label">Monitores / IoMT</div>
+      <div class="int-sub">Constantes / Dispositivos</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ ACCESIBILIDAD -->
+<div class="divider"></div>
+<section class="section fade-in">
+  <div class="section-header">
+    <div class="section-num">12 / Accesibilidad</div>
+    <div>
+      <div class="section-title">Cumplimiento WCAG 2.1 AA y Diseño Inclusivo</div>
+      <div class="section-desc">Los entornos sanitarios atienden a usuarios con capacidades diversas, y el personal trabaja bajo una carga cognitiva extrema. Cada decisión de diseño prioriza la claridad y la accesibilidad universal.</div>
+    </div>
+  </div>
+
+  <div class="a11y-grid">
+    <div class="a11y-card">
+      <div class="a11y-icon">🎨</div>
+      <div>
+        <div class="a11y-title">Redundancia Color + Forma</div>
+        <div class="a11y-desc">Los niveles de triage usan color Y número Y etiqueta — nunca color como único indicador. Testado para deuteranopia y protanopia.</div>
+      </div>
+    </div>
+    <div class="a11y-card">
+      <div class="a11y-icon">⌨️</div>
+      <div>
+        <div class="a11y-title">Navegación Completa por Teclado</div>
+        <div class="a11y-desc">Todos los elementos interactivos accesibles con Tab. Enlaces de salto de navegación. Los estados de foco son prominentes. Teclas de flecha para la cola de pacientes.</div>
+      </div>
+    </div>
+    <div class="a11y-card">
+      <div class="a11y-icon">📢</div>
+      <div>
+        <div class="a11y-title">Soporte para Lectores de Pantalla</div>
+        <div class="a11y-desc">HTML5 semántico en toda la aplicación. Regiones ARIA en vivo para actualizaciones de cola en tiempo real. Texto alternativo descriptivo. Atributos de rol en todos los componentes personalizados.</div>
+      </div>
+    </div>
+    <div class="a11y-card">
+      <div class="a11y-icon">🔤</div>
+      <div>
+        <div class="a11y-title">Tipografía y Contraste</div>
+        <div class="a11y-desc">Ratio de contraste mínimo 4.5:1 para todo el texto. Las alertas críticas alcanzan 7:1. Tamaño mínimo 14px para datos clínicos. Escalable al 200% sin pérdida funcional.</div>
+      </div>
+    </div>
+    <div class="a11y-card">
+      <div class="a11y-icon">🖐</div>
+      <div>
+        <div class="a11y-title">Tamaño de Objetivos Táctiles</div>
+        <div class="a11y-desc">Mínimo 44×44px en todos los elementos interactivos. Los botones de acción crítica (triage, alerta) están sobredimensionados para uso con guantes.</div>
+      </div>
+    </div>
+    <div class="a11y-card">
+      <div class="a11y-icon">🔊</div>
+      <div>
+        <div class="a11y-title">Alertas Sonoras</div>
+        <div class="a11y-desc">Los eventos críticos (llegada paciente N1, alarmas de constantes) emiten tonos distintivos además de los indicadores visuales. Volumen configurable por estación. Nunca es el único aviso.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ RESPONSIVE -->
+<div class="divider"></div>
+<section class="section fade-in">
+  <div class="section-header">
+    <div class="section-num">13 / Diseño Móvil y Responsivo</div>
+    <div>
+      <div class="section-title">Interfaz Adaptativa por Dispositivo</div>
+      <div class="section-desc">Los clínicos utilizan cada vez más tablets y smartphones durante las visitas. SDP-HEALTH adapta su diseño desde la máxima densidad en escritorio hasta vistas esenciales en móvil, manteniendo la información crítica para la seguridad en todos los puntos de ruptura.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap;">
+    <div class="mobile-preview">
+      <div class="mobile-topbar">
+        <div class="mobile-title">SDP·HEALTH</div>
+        <div class="live-indicator"><span class="live-dot"></span>En Vivo</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div style="flex:1;background:var(--critical-dim);border:1px solid rgba(255,59,59,0.3);border-radius:var(--r);padding:8px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--critical);">7</div>
+          <div style="font-size:9px;color:var(--text-muted);">Críticos</div>
+        </div>
+        <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:800;">43</div>
+          <div style="font-size:9px;color:var(--text-muted);">Activos</div>
+        </div>
+        <div style="flex:1;background:var(--low-dim);border:1px solid rgba(0,200,83,0.2);border-radius:var(--r);padding:8px;text-align:center;">
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--low);">18m</div>
+          <div style="font-size:9px;color:var(--text-muted);">Media</div>
+        </div>
+      </div>
+      <div class="mobile-card">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span class="triage-badge tb-critical" style="font-size:9px;padding:2px 6px;">N1</span>
+          <span style="font-size:11px;font-weight:600;">P-0047 · J. Morales</span>
+        </div>
+        <div style="font-size:10px;color:var(--critical);">PA 82/50 · SpO₂ 88% · FC 118</div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <button class="btn btn-danger" style="flex:1;padding:6px;font-size:10px;">Alertar</button>
+          <button class="btn btn-secondary" style="flex:1;padding:6px;font-size:10px;">Historia</button>
+        </div>
+      </div>
+      <div class="mobile-card">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          <span class="triage-badge tb-high" style="font-size:9px;padding:2px 6px;">N2</span>
+          <span style="font-size:11px;font-weight:600;">P-0038 · A. Blanco</span>
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);">Disnea aguda — 14m espera</div>
+      </div>
+      <div style="display:flex;justify-content:space-around;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+        <div style="text-align:center;font-size:9px;color:var(--text-muted);">📋 Cola</div>
+        <div style="text-align:center;font-size:9px;color:var(--accent);">➕ Registrar</div>
+        <div style="text-align:center;font-size:9px;color:var(--text-muted);">📊 Estadísticas</div>
+        <div style="text-align:center;font-size:9px;color:var(--text-muted);">⚙ Más</div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:280px;">
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:16px;">Puntos de Ruptura Responsivos</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-bottom:4px;">≥ 1280px — Escritorio</div>
+          <div style="font-size:12px;color:var(--text-muted);">Diseño completo de tres columnas. Máxima densidad de datos. Todas las funciones accesibles simultáneamente. Atajos de teclado activos.</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--medium);margin-bottom:4px;">768–1279px — Tablet</div>
+          <div style="font-size:12px;color:var(--text-muted);">Diseño de dos columnas. La barra lateral se contrae a solo iconos. El panel contextual se convierte en una hoja inferior. Optimizado para táctil con objetivos más grandes.</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--high);margin-bottom:4px;">&lt; 768px — Móvil</div>
+          <div style="font-size:12px;color:var(--text-muted);">Una sola columna. Navegación por pestañas inferiores. Cola como tarjetas apiladas. Las alertas críticas usan pantalla completa. El formulario de registro en formato asistente paso a paso.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ FEEDBACK -->
+<div class="divider"></div>
+<section class="section fade-in">
+  <div class="section-header">
+    <div class="section-num">14 / Retroalimentación y Mejora Continua</div>
+    <div>
+      <div class="section-title">Sistema de Retroalimentación Contextual</div>
+      <div class="section-desc">Los clínicos pueden reportar problemas o sugerir mejoras sin abandonar su flujo de trabajo. Las microencuestas de baja fricción capturan señales de satisfacción en momentos clave de interacción.</div>
+    </div>
+  </div>
+
+  <div class="feedback-bar">
+    <div class="feedback-label">¿Fue útil esta sugerencia de triage?</div>
+    <div class="feedback-btns">
+      <button class="fb-btn">👍 Sí, preciso</button>
+      <button class="fb-btn">👎 No del todo</button>
+      <button class="fb-btn">🐛 Reportar problema</button>
+      <button class="fb-btn">💡 Sugerir mejora</button>
+    </div>
+    <div style="margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);">Anónimo · Revisado por el equipo de producto semanalmente</div>
+  </div>
+
+  <div class="tooltip-hint mt-12">
+    La retroalimentación se recoge de forma contextual (tras el triage, tras la prescripción, en el dashboard) en lugar de como una encuesta separada. El tiempo del clínico es demasiado valioso para formularios extensos. Toda retroalimentación incluye automáticamente el contexto de la pantalla actual para el equipo de desarrollo.
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ PRINCIPIOS UX -->
+<div class="divider"></div>
+<section class="section fade-in">
+  <div class="section-header">
+    <div class="section-num">15 / Principios de Diseño UX</div>
+    <div>
+      <div class="section-title">Filosofía Central de Diseño</div>
+      <div class="section-desc">Cada interacción está diseñada con la conciencia de que el usuario puede estar gestionando una situación potencialmente mortal. La velocidad, la claridad y la carga cognitiva cero son innegociables.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r-lg);padding:20px;">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px;">Mínima Carga Cognitiva</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">Máximo 5±2 elementos por grupo visual. La divulgación progresiva oculta opciones avanzadas. Los valores predeterminados inteligentes rellenan previamente los campos más comunes. La superficie de IA reduce la toma de decisiones manual.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent2);border-radius:var(--r-lg);padding:20px;">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px;">Prevención de Errores vs. Corrección</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">La validación del formulario se ejecuta en tiempo real, no al enviar. Las acciones peligrosas (borrar, dar alta) requieren confirmación explícita con reintroducción del nombre del paciente. Las alertas de interacción aparecen antes del envío.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--medium);border-radius:var(--r-lg);padding:20px;">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px;">La Velocidad como Característica</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">Objetivo: 3 clics o menos para cualquier acción principal. Atajos de teclado para todas las tareas comunes. El autoguardado evita la pérdida de datos. Rendimiento percibido mediante actualizaciones de UI optimistas.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--high);border-radius:var(--r-lg);padding:20px;">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px;">Jerarquía de Información por Urgencia</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">La información crítica siempre es visible sin desplazarse. La gravedad de la alerta determina el peso visual, no la recencia. El paciente más urgente siempre aparece al principio de todas las vistas.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--low);border-radius:var(--r-lg);padding:20px;">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px;">Confianza a Través de la Transparencia</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">Las sugerencias de IA siempre muestran su razonamiento. Los clínicos pueden anular cualquier decisión automatizada con un clic. El estado del sistema (sincronización, conexión, última actualización) es siempre visible. Sin cajas negras.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--non-urgent);border-radius:var(--r-lg);padding:20px;">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px;">Diseño Resistente al Estrés</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">Alto contraste en todas las condiciones de iluminación. Syne + DM Sans elegidas por su legibilidad bajo presión. Objetivos de interacción dimensionados para el control motor fino afectado por la adrenalina. Sin funcionalidades dependientes solo de hover.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ INSPIRACIÓN -->
+<div class="divider"></div>
+<section class="section fade-in">
+  <div class="section-header">
+    <div class="section-num">Apéndice / Fuentes de Inspiración</div>
+    <div>
+      <div class="section-title">Plataformas HealthTech de Referencia</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px;">Epic / Selene</div>
+      <div style="font-size:11px;color:var(--text-muted);">HCE de referencia del sector — convenciones de campos clínicos, patrones de flujo de trabajo y enfoques de integración FHIR.</div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px;">Figma / Linear</div>
+      <div style="font-size:11px;color:var(--text-muted);">Inspiración en sistemas de diseño para interfaces de datos en modo oscuro con fuerte jerarquía tipográfica y sistemas de componentes limpios.</div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px;">T2 Biosystems</div>
+      <div style="font-size:11px;color:var(--text-muted);">Interfaces de diagnóstico rápido — inspiración para visualización de resultados en tiempo real y patrones de presentación de alertas clínicas.</div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px;">Philips IntelliVue</div>
+      <div style="font-size:11px;color:var(--text-muted);">Estándares de monitorización del paciente — jerarquía de alarmas, presentación de formas de onda y lenguaje visual de umbrales críticos.</div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px;">Verily / Google Health</div>
+      <div style="font-size:11px;color:var(--text-muted);">Patrones de UI para soporte de decisión clínica aumentada con IA, visualización de intervalos de confianza e interfaces de colaboración humano-IA.</div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px;">PagerDuty / OpsGenie</div>
+      <div style="font-size:11px;color:var(--text-muted);">UI de escalado de alertas, gestión de guardias e priorización de incidentes — directamente aplicable al diseño de la cola de triage de urgencias.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ FOOTER -->
+<footer>
+  <div style="font-family:var(--font-display);font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">SDP·HEALTH</div>
+  PROPUESTA DE DISEÑO v1.0 · PRIORIZACIÓN DINÁMICA ESTRATÉGICA Y GESTIÓN INTELIGENTE DEL FLUJO HOSPITALARIO<br>
+  <span style="margin-top:6px;display:block;opacity:0.5;">Diseñado para SaaS HealthTech · Equipo de Ingeniería Full-Stack</span>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  document.querySelectorAll('.symptom-chip').forEach(chip => {
+    chip.addEventListener('click', () => chip.classList.toggle('selected'));
+    chip.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chip.classList.toggle('selected'); }
+    });
+  });
+
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
